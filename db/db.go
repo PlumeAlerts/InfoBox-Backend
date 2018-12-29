@@ -2,17 +2,19 @@ package db
 
 import (
 	"fmt"
+	"github.com/PlumeAlerts/InfoBox-Backend/jwt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/mysql"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jinzhu/gorm"
+	"net/http"
 	"os"
 )
 
 type User struct {
 	ID              string `gorm:"primary_key"`
-	InfoboxInterval int
+	InfoboxInterval int    `json:"interval" validate:"required,numeric,gte=1,lte=120"`
 }
 
 type InfoBox struct {
@@ -51,7 +53,9 @@ func Connect() {
 		panic("failed to connect database")
 	}
 	//defer DB.Close()
-
+	Migrate()
+}
+func Migrate() {
 	driver, _ := mysql.WithInstance(DB.DB(), &mysql.Config{})
 	m, err := migrate.NewWithDatabaseInstance(
 		"file://migrations",
@@ -64,11 +68,11 @@ func Connect() {
 	m.Steps(1)
 }
 
-func GetUserOrCreate(userId string) (*gorm.DB, bool) {
-	user := DB.FirstOrCreate(&User{ID: userId})
-	if user.RowsAffected == 0 {
-		user = DB.Create(&User{ID: userId, InfoboxInterval: 15})
-		return user, true
-	}
-	return user, false
+func GetUserOrCreate(r *http.Request) string {
+	userId := r.Context().Value(jwt.ChannelIDKey).(string)
+
+	var user = User{}
+	user.InfoboxInterval = 15
+	DB.Where(&User{ID: userId}).FirstOrCreate(&user)
+	return userId
 }
