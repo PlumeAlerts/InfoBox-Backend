@@ -6,31 +6,31 @@ import (
 	"github.com/PlumeAlerts/InfoBox-Backend/requests"
 	"github.com/PlumeAlerts/InfoBox-Backend/utilities"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 	"gopkg.in/go-playground/validator.v9"
 	"log"
 	"net/http"
-	"regexp"
 )
 
 func Initialize() {
 	utilities.Validate = validator.New()
-	utilities.Validate.RegisterValidation("text", ValidateText)
 
 	db.Connect()
 
 	r := mux.NewRouter()
 	r.Use(jwt.VerifyJWT)
-	r.Handle("/config", http.HandlerFunc(requests.GetConfig)).Methods("GET")
-	r.Handle("/config", http.HandlerFunc(requests.PutConfig)).Methods("PUT")
 
-	r.Handle("/ib/config", http.HandlerFunc(requests.GetIBConfig)).Methods("GET")
-	r.Handle("/ib/config", http.HandlerFunc(requests.PutIBConfig)).Methods("PUT")
-	r.Handle("/ib/config", http.HandlerFunc(requests.PostIBConfig)).Methods("POST")
-	r.Handle("/ib/config", http.HandlerFunc(requests.DeleteIBConfig)).Methods("DELETE")
+	r.Handle("/config", http.HandlerFunc(requests.GetIBConfig)).Methods("GET")
+	r.Handle("/config", http.HandlerFunc(requests.PutIBConfig)).Methods("PUT")
+	r.Handle("/config", http.HandlerFunc(requests.PostIBConfig)).Methods("POST")
+	r.Handle("/config", http.HandlerFunc(requests.DeleteIBConfig)).Methods("DELETE")
 
-	log.Fatal(http.ListenAndServe(":8000", r))
-}
+	c := cors.New(cors.Options{
+		AllowedHeaders: []string{"Authorization", "Content-Type"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"},
+	})
 
-func ValidateText(fl validator.FieldLevel) bool {
-	return regexp.MustCompile("\\p{M}*").MatchString(fl.Field().String())
+	// Insert the middleware
+	handler := c.Handler(r)
+	log.Fatal(http.ListenAndServeTLS(":8000", "conf/server.crt", "conf/server.key", handler))
 }

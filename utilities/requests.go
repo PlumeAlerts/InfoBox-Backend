@@ -2,22 +2,28 @@ package utilities
 
 import (
 	"encoding/json"
+	"fmt"
 	"gopkg.in/go-playground/validator.v9"
+	"net/http"
 	"strconv"
 )
 
 var Validate *validator.Validate
 
-func ValidateInterface(obj interface{}) validator.ValidationErrors {
-	err := Validate.Struct(&obj)
+func ValidateInterface(obj interface{}) error {
+	err := Validate.Struct(obj)
 
-	if err != nil {
-		if _, ok := err.(*validator.InvalidValidationError); ok {
-			panic(err)
-		}
+	// this check is only needed when your code could produce
+	// an invalid value for validation such as interface with nil
+	// value most including myself do not usually have code like this.
+	if _, ok := err.(*validator.InvalidValidationError); ok {
+		fmt.Println(err)
+		return nil
+	}
 
-		validationErrors := err.(validator.ValidationErrors)
-		return validationErrors
+	if _, ok := err.(*validator.ValidationErrors); ok {
+		fmt.Println(err)
+		return err
 	}
 	return nil
 }
@@ -32,10 +38,10 @@ func GetIBID(id string) (uint, error) {
 	return uint(t), nil
 }
 
-func InterfaceToJson(obj interface{}) ([]byte, bool) {
-	b, err := json.Marshal(&obj)
-	if err != nil {
-		return nil, true
-	}
-	return b, false
+func RespondWithJSON(w http.ResponseWriter, statusCode int, payload interface{}) {
+	response, _ := json.Marshal(payload)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	w.Write(response)
 }

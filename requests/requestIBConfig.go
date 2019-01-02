@@ -12,22 +12,16 @@ import (
 )
 
 func GetIBConfig(w http.ResponseWriter, r *http.Request) {
-	userId := db.GetUserOrCreate(r)
+	userId := r.Context().Value(jwt.ChannelIDKey).(string)
 
 	var ib []db.InfoBox
 	db.DB.Where(&db.InfoBox{UserId: userId}).Find(&ib)
 
-	b, err := utilities.InterfaceToJson(&ib)
-	if err {
-		w.WriteHeader(500)
-		return
-	}
-	w.WriteHeader(200)
-	w.Write(b)
+	utilities.RespondWithJSON(w, 200, &ib)
 }
 
 func PutIBConfig(w http.ResponseWriter, r *http.Request) {
-	userId := db.GetUserOrCreate(r)
+	userId := r.Context().Value(jwt.ChannelIDKey).(string)
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -70,32 +64,26 @@ func PutIBConfig(w http.ResponseWriter, r *http.Request) {
 	}
 	infoBoxes := &db.InfoBox{
 		ID:              data.ID,
-		Title:           data.Title,
+		Text:            data.Text,
 		TextSize:        data.TextSize,
 		URL:             data.URL,
 		Icon:            data.Icon,
 		IconColor:       data.IconColor,
 		TextColor:       data.TextColor,
 		BackgroundColor: data.BackgroundColor,
+		Intervals:       data.Intervals,
 		UserId:          userId,
 	}
-	ib := db.DB.Update(infoBoxes)
+	ib := db.DB.Save(infoBoxes)
 
 	if ib.Error != nil {
 		panic(ib.Error.Error())
 	}
-	b, error := utilities.InterfaceToJson(&ib.Value)
-	if error {
-		w.WriteHeader(400)
-		return
-		//panic(err)
-	}
-	w.WriteHeader(200)
-	w.Write(b)
+	utilities.RespondWithJSON(w, 200, &ib.Value)
 }
 
 func PostIBConfig(w http.ResponseWriter, r *http.Request) {
-	userId := db.GetUserOrCreate(r)
+	userId := r.Context().Value(jwt.ChannelIDKey).(string)
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -104,40 +92,37 @@ func PostIBConfig(w http.ResponseWriter, r *http.Request) {
 	var data db.InfoBox
 	err = json.Unmarshal(body, &data)
 	if err != nil {
+		fmt.Println(err)
 		w.WriteHeader(400)
 		return
 	}
 
-	err = utilities.ValidateInterface(data)
-	if err != nil {
+	err = utilities.ValidateInterface(&data)
+	if _, ok := err.(*validator.ValidationErrors); ok {
 		validationErrors := err.(validator.ValidationErrors)
 		fmt.Println(validationErrors.Error())
 		w.WriteHeader(400)
 		return
 	}
 
-	infoBoxes := &db.InfoBox{Title: data.Title,
+	infoBoxes := &db.InfoBox{
+		Text:            data.Text,
 		TextSize:        data.TextSize,
 		URL:             data.URL,
 		Icon:            data.Icon,
 		IconColor:       data.IconColor,
 		TextColor:       data.TextColor,
 		BackgroundColor: data.BackgroundColor,
-		UserId:          userId,
+		Intervals:       data.Intervals,
+
+		UserId: userId,
 	}
 	ib := db.DB.Create(infoBoxes)
 
 	if ib.Error != nil {
 		panic(ib.Error.Error())
 	}
-	b, error := utilities.InterfaceToJson(&ib.Value)
-	if error {
-		w.WriteHeader(400)
-		return
-		//panic(err)
-	}
-	w.WriteHeader(200)
-	w.Write(b)
+	utilities.RespondWithJSON(w, 200, &ib.Value)
 }
 
 func DeleteIBConfig(w http.ResponseWriter, r *http.Request) {
@@ -164,5 +149,5 @@ func DeleteIBConfig(w http.ResponseWriter, r *http.Request) {
 	}
 
 	db.DB.Delete(&db.InfoBox{ID: id})
-	w.WriteHeader(200)
+	utilities.RespondWithJSON(w, 200, nil)
 }
