@@ -1,4 +1,4 @@
-module github.com/PlumeAlerts/InfoBox-Backend
+module github.com/PlumeAlerts/InfoBoxes-Backend
 
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible

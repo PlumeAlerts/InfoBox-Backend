@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/PlumeAlerts/InfoBox-Backend/jwt"
+	"github.com/PlumeAlerts/InfoBoxes-Backend/jwt"
 	jwtgo "github.com/dgrijalva/jwt-go"
 	"io/ioutil"
 	"net/http"

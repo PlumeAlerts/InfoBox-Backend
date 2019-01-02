@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/PlumeAlerts/InfoBox-Backend/db"
-	"github.com/PlumeAlerts/InfoBox-Backend/jwt"
-	"github.com/PlumeAlerts/InfoBox-Backend/requests"
-	"github.com/PlumeAlerts/InfoBox-Backend/utilities"
+	"github.com/PlumeAlerts/InfoBoxes-Backend/db"
+	"github.com/PlumeAlerts/InfoBoxes-Backend/jwt"
+	"github.com/PlumeAlerts/InfoBoxes-Backend/requests"
+	"github.com/PlumeAlerts/InfoBoxes-Backend/utilities"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 	"gopkg.in/go-playground/validator.v9"

@@ -3,9 +3,9 @@ package requests
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/PlumeAlerts/InfoBox-Backend/db"
-	"github.com/PlumeAlerts/InfoBox-Backend/jwt"
-	"github.com/PlumeAlerts/InfoBox-Backend/utilities"
+	"github.com/PlumeAlerts/InfoBoxes-Backend/db"
+	"github.com/PlumeAlerts/InfoBoxes-Backend/jwt"
+	"github.com/PlumeAlerts/InfoBoxes-Backend/utilities"
 	"gopkg.in/go-playground/validator.v9"
 	"io/ioutil"
 	"net/http"

@@ -33,10 +33,10 @@ func Connect() {
 		}
 		return defaultValue
 	}
-	user := env("MYSQL_TEST_USER", "root")
-	pass := env("MYSQL_TEST_PASS", "")
-	addr := env("MYSQL_TEST_ADDR", "localhost:3306")
-	dbname := env("MYSQL_TEST_DBNAME", "infoboxes")
+	user := env("MYSQL_USER", "root")
+	pass := env("MYSQL_PASS", "")
+	addr := env("MYSQL_ADDR", "localhost:3306")
+	dbname := env("MYSQL_DBNAME", "infoboxes")
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?multiStatements=true", user, pass, addr, dbname)
 	DB, err = gorm.Open("mysql", dsn)
 	if err != nil {
