@@ -1,10 +1,6 @@
-FROM golang:1.11.2-alpine
-
-RUN apk add --update netcat-openbsd bash && rm -rf /var/cache/apk/*
+FROM alpine:3.8
 
 WORKDIR /
-
-ENV GO111MODULE=on
 
 ENV MYSQL_USER=root
 ENV MYSQL_PASS=""
