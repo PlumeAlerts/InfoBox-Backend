@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package jwt
+package extension
 
 import (
 	"context"
@@ -23,8 +23,8 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"log"
 	"net/http"
-	"os"
 	"strings"
+	"time"
 )
 
 // ContextKeyType ...
@@ -49,8 +49,7 @@ type JWTPubSubPermissions struct {
 	Listen []string `json:"listen,omitempty"`
 }
 
-// VerifyJWT is middleware to confirm the validity of incoming requests
-func VerifyJWT(next http.Handler) http.Handler {
+func (c *Client) VerifyJWT(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var token string
 
@@ -68,10 +67,10 @@ func VerifyJWT(next http.Handler) http.Handler {
 
 		parsedToken, err := jwt.ParseWithClaims(token, &JWTClaims{}, func(t *jwt.Token) (interface{}, error) {
 			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("Unexpected signing method: %v", t.Header["alg"])
+				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
 			}
 
-			key, err := base64.StdEncoding.DecodeString(os.Getenv("EXT_SECRET"))
+			key, err := base64.StdEncoding.DecodeString(c.ClientSecret)
 
 			if err != nil {
 				return nil, err
@@ -94,7 +93,6 @@ func VerifyJWT(next http.Handler) http.Handler {
 				http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
 			}
 
-			//TODO Fix error with no body
 			next.ServeHTTP(w, r.WithContext(ctx))
 		} else {
 			log.Println("Could not parse JWT")
@@ -104,25 +102,23 @@ func VerifyJWT(next http.Handler) http.Handler {
 	})
 }
 
-// NewJWT creates an EBS-signed JWT
-func NewJWT(claims JWTClaims) string {
-	//var expiration = time.Now().Add(time.Minute*3).UnixNano() / int64(time.Millisecond)
+func (c *Client) NewJWT() string {
 
-	//claims := JWTClaims{
-	//	UserID:    os.Getenv("EXT_OWNER_ID"),
-	//	ChannelID: channelID,
-	//	Role:      "external",
-	//	Permissions: JWTPubSubPermissions{
-	//		Send: []string{"broadcast"},
-	//	},
-	//	StandardClaims: jwt.StandardClaims{
-	//		ExpiresAt: expiration,
-	//	},
-	//}
+	claims := JWTClaims{
+		UserID: c.OwnerID,
+		Role:   "external",
+	}
+	return c.NewJWTWithClaim(claims)
+}
+
+// NewJWT creates an EBS-signed JWT
+func (c *Client) NewJWTWithClaim(claims JWTClaims) string {
+	var expiration = time.Now().Add(time.Minute*3).UnixNano() / int64(time.Millisecond)
+	claims.ExpiresAt = expiration
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	key, err := base64.StdEncoding.DecodeString(os.Getenv("EXT_SECRET"))
+	key, err := base64.StdEncoding.DecodeString(c.ClientSecret)
 	if err != nil {
 		log.Fatal(err)
 	}
