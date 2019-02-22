@@ -1,1 +1,1 @@
-# InfoBox-Backend
+# StreamAnnotations-Backend

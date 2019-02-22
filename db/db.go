@@ -2,26 +2,27 @@ package db
 
 import (
 	"fmt"
-	"github.com/PlumeAlerts/InfoBoxes-Backend/extension"
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/PlumeAlerts/StreamAnnotations-Backend/extension"
 	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/mysql"
+	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"log"
 	"net/http"
 	"os"
 	"time"
 )
 
 type User struct {
-	ID              string    `gorm:"primary_key" json:"id"`
-	Intervals       int       `json:"intervals" validate:"required,numeric,gte=1,lte=120"`
-	LastTriggered   time.Time `json:"last_triggered"`
-	LastInfoBoxesId uint      `json:"last_info_boxes_id"`
+	Id                 string    `gorm:"primary_key" json:"id"`
+	LastTriggered      time.Time `json:"last_triggered"`
+	LastAnnotationId   int       `json:"last_annotation_id"`
+	AnnotationInterval int       `json:"annotation_interval" validate:"required,numeric,gte=1,lte=120"`
 }
 
-type InfoBox struct {
-	ID              uint   `gorm:"primary_key" json:"id"`
+type Annotation struct {
+	Id              int    `gorm:"primary_key" json:"id"`
 	Text            string `json:"text"`
 	TextSize        int    `json:"textSize" validate:"required,numeric,gte=1,lte=7"`
 	URL             string `json:"url" validate:"url"`
@@ -29,36 +30,28 @@ type InfoBox struct {
 	IconColor       string `json:"iconColor" validate:"hexcolor"`
 	TextColor       string `json:"textColor" validate:"hexcolor"`
 	BackgroundColor string `json:"backgroundColor" validate:"hexcolor"`
-	UserId          string
+	UserId          string `json:"user_id"`
 }
 
 var DB *gorm.DB
 
-func env(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return defaultValue
-}
-
-func Connect() {
+func Connect(address string, port string, dbname string, username string, password string) {
 	var err error
-	user := env("MYSQL_USER", "root")
-	pass := env("MYSQL_PASS", "")
-	addr := env("MYSQL_ADDR", "localhost:3306")
-	dbname := env("MYSQL_DBNAME", "infoboxes")
-	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?multiStatements=true&parseTime=true&loc=Local", user, pass, addr, dbname)
-	DB, err = gorm.Open("mysql", dsn)
+	DB, err = gorm.Open("postgres", fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=disable", address, port, dbname, username, password))
 	if err != nil {
+		fmt.Println(err)
 		panic("failed to connect database")
 	}
+	DB.LogMode(true)
+	DB.SetLogger(log.New(os.Stdout, "\r\n", 0))
 	Migrate()
 }
+
 func Migrate() {
-	driver, _ := mysql.WithInstance(DB.DB(), &mysql.Config{})
+	driver, _ := postgres.WithInstance(DB.DB(), &postgres.Config{})
 	m, err := migrate.NewWithDatabaseInstance(
 		"file://migrations",
-		"mysql",
+		"postgres",
 		driver,
 	)
 	if err != nil {
@@ -67,11 +60,11 @@ func Migrate() {
 	m.Steps(1)
 }
 
-func GetUserOrCreate(r *http.Request) string {
+func GetUserIdOrCreate(r *http.Request) string {
 	userId := r.Context().Value(extension.ChannelIDKey).(string)
 
 	var user = User{}
-	user.Intervals = 15
-	DB.Where(&User{ID: userId}).FirstOrCreate(&user)
+	user.AnnotationInterval = 15
+	DB.Where(&User{Id: userId}).FirstOrCreate(&user)
 	return userId
 }

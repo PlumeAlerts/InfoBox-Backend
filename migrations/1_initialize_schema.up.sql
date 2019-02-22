@@ -1,16 +1,16 @@
 CREATE TABLE users
 (
-  id                 VARCHAR(255),
-  intervals          INT,
-  last_triggered     TIMESTAMP,
-  last_info_boxes_id INT UNSIGNED,
+  id                  VARCHAR(255),
+  last_triggered      TIMESTAMP,
+  annotation_interval INT,
+  last_annotation_id  INT,
 
   PRIMARY KEY (id)
 );
 
-CREATE TABLE info_boxes
+CREATE TABLE annotations
 (
-  id               INT UNSIGNED AUTO_INCREMENT,
+  id               SERIAL,
   text             VARCHAR(255) NOT NULL,
   text_size        INT          NOT NULL,
   url              VARCHAR(255),
