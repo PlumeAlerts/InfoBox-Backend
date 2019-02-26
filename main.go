@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 )
 
@@ -13,6 +14,7 @@ func env(key, defaultValue string) string {
 
 func main() {
 	a := App{}
+	fmt.Println("Starting")
 
 	clientId := env("EXT_CLIENT_ID", "")
 	clientSecret := env("EXT_CLIENT_SECRET", "")
@@ -22,7 +24,8 @@ func main() {
 	dbName := env("DB_NAME", "annotations")
 	dbUsername := env("DB_USERNAME", "postgres")
 	dbPassword := env("DB_PASSWORD", "")
-
+	fmt.Printf("Connecting to %s using port %s", dbHost, dbPort)
 	a.Initialize(clientId, clientSecret, ownerId, dbHost, dbPort, dbName, dbUsername, dbPassword)
+	fmt.Println("Started")
 	a.Run()
 }
