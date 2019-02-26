@@ -37,7 +37,7 @@ var DB *gorm.DB
 
 func Connect(address string, port string, dbname string, username string, password string) {
 	var err error
-	DB, err = gorm.Open("postgres", fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=disable", address, port, dbname, username, password))
+	DB, err = gorm.Open("postgres", fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s", address, port, dbname, username, password))
 	if err != nil {
 		fmt.Println(err)
 		panic("failed to connect database")
