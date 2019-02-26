@@ -116,7 +116,6 @@ func (c *Client) NewJWTWithClaim(claims JWTClaims) (string, error) {
 	claims.ExpiresAt = expiration
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	fmt.Println(c.ClientSecret)
 
 	key, err := base64.StdEncoding.DecodeString(c.ClientSecret)
 	if err != nil {

@@ -1,7 +1,6 @@
 package extension
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -28,7 +27,7 @@ func (c *Client) PostPubSubMessage(channelID string, message string) error {
 	bodyData := PubSubMessageBody{ContentType: "application/json",
 		Message: message,
 		Targets: []string{"broadcast"}}
-	fmt.Println(jwtToken)
+
 	req, err := c.requestWithClientID(jwtToken, false).Post("message/" + channelID).BodyJSON(&bodyData).Request()
 	if err != nil {
 		return err
