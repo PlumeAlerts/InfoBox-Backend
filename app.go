@@ -78,7 +78,6 @@ func triggerAnnotations(client extension.Client) {
 	for i := 0; i < len(users); i++ {
 		user := users[i]
 
-		//TODO Should fix the count issue
 		count := 0
 		db.DB.Where("user_id = ?", user.Id).Find(&db.Annotation{}).Count(&count)
 		if count == 0 {
@@ -95,6 +94,7 @@ func triggerAnnotations(client extension.Client) {
 		err := client.PostPubSubMessage(user.Id, string(b))
 		if err != nil {
 			fmt.Println(err)
+			continue
 		}
 		db.DB.Save(&db.User{Id: user.Id, LastTriggered: time.Now(), LastAnnotationId: annotation.Id})
 	}
