@@ -20,7 +20,9 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"github.com/PlumeAlerts/StreamAnnotations-Backend/utilities"
 	"github.com/dgrijalva/jwt-go"
+	resp "github.com/nicklaw5/go-respond"
 	"log"
 	"net/http"
 	"strings"
@@ -61,7 +63,7 @@ func (c *Client) VerifyJWT(next http.Handler) http.Handler {
 
 		if token == "" {
 			log.Println("JWT missing in request header")
-			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+			resp.NewResponse(w).Unauthorized(utilities.Error{Message: "Missing JWT token"})
 			return
 		}
 
@@ -80,8 +82,7 @@ func (c *Client) VerifyJWT(next http.Handler) http.Handler {
 		})
 
 		if err != nil {
-			log.Println(err)
-			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+			resp.NewResponse(w).Unauthorized(utilities.Error{Message: "Invalid JWT token"})
 			return
 		}
 
@@ -89,20 +90,18 @@ func (c *Client) VerifyJWT(next http.Handler) http.Handler {
 			ctx := context.WithValue(r.Context(), ChannelIDKey, claims.ChannelID)
 
 			if claims.Role != "broadcaster" {
-				log.Println("Invalid JWT role")
-				http.Error(w, http.StatusText(http.StatusForbidden), http.StatusForbidden)
+				resp.NewResponse(w).Unauthorized(utilities.Error{Message: "Invalid JWT role"})
 			}
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		} else {
-			log.Println("Could not parse JWT")
-			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+			resp.NewResponse(w).InternalServerError(utilities.Error{Message: "Could not parse JWT token"})
 			return
 		}
 	})
 }
 
-func (c *Client) NewJWT() string {
+func (c *Client) NewJWT() (string, error) {
 
 	claims := JWTClaims{
 		UserID: c.OwnerID,
@@ -112,7 +111,7 @@ func (c *Client) NewJWT() string {
 }
 
 // NewJWT creates an EBS-signed JWT
-func (c *Client) NewJWTWithClaim(claims JWTClaims) string {
+func (c *Client) NewJWTWithClaim(claims JWTClaims) (string, error) {
 	var expiration = time.Now().Add(time.Minute*3).UnixNano() / int64(time.Millisecond)
 	claims.ExpiresAt = expiration
 
@@ -120,13 +119,13 @@ func (c *Client) NewJWTWithClaim(claims JWTClaims) string {
 
 	key, err := base64.StdEncoding.DecodeString(c.ClientSecret)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
 	tokenString, err := token.SignedString(key)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
-	return tokenString
+	return tokenString, nil
 }

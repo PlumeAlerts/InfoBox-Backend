@@ -20,16 +20,21 @@ func (c *Client) PostPubSubMessage(channelID string, message string) error {
 			Send: []string{"broadcast"},
 		},
 	}
-	jwtToken := c.NewJWTWithClaim(claims)
+	jwtToken, err := c.NewJWTWithClaim(claims)
+	if err != nil {
+		return err
+	}
 	bodyData := PubSubMessageBody{ContentType: "application/json",
 		Message: message,
 		Targets: []string{"broadcast"}}
 
 	req, err := c.requestWithClientID(jwtToken, false).Post("message/" + channelID).BodyJSON(&bodyData).Request()
+	if err != nil {
+		return err
+	}
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		panic(err)
 		return err
 	}
 	resp.Body.Close()
@@ -46,7 +51,10 @@ func (c *Client) PostPubSubMessageAll(message string) error {
 			Send: []string{"global"},
 		},
 	}
-	jwtToken := c.NewJWTWithClaim(claims)
+	jwtToken, err := c.NewJWTWithClaim(claims)
+	if err != nil {
+		return err
+	}
 	bodyData := PubSubMessageBody{ContentType: "application/json",
 		Message: message,
 		Targets: []string{"global"}}

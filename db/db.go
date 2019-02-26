@@ -8,9 +8,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
-	"log"
 	"net/http"
-	"os"
 	"time"
 )
 
@@ -42,8 +40,6 @@ func Connect(address string, port string, dbname string, username string, passwo
 		fmt.Println(err)
 		panic("failed to connect database")
 	}
-	DB.LogMode(true)
-	DB.SetLogger(log.New(os.Stdout, "\r\n", 0))
 	Migrate()
 }
 
