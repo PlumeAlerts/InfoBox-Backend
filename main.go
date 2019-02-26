@@ -9,7 +9,7 @@ func env(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
 	}
-	fmt.Printf("Enviroment variable %s not set, defaulting to %s", key, defaultValue)
+	fmt.Printf("Enviroment variable %s not set, defaulting to %s\n", key, defaultValue)
 	return defaultValue
 }
 
@@ -25,7 +25,7 @@ func main() {
 	dbName := env("DB_NAME", "annotations")
 	dbUsername := env("DB_USERNAME", "postgres")
 	dbPassword := env("DB_PASSWORD", "")
-	fmt.Printf("Connecting to %s using port %s", dbHost, dbPort)
+	fmt.Printf("Connecting to %s using port %s\n", dbHost, dbPort)
 
 	a.Initialize(clientId, clientSecret, ownerId, dbHost, dbPort, dbName, dbUsername, dbPassword)
 	fmt.Println("Started")
