@@ -2,7 +2,7 @@ CREATE TABLE users
 (
   id                  VARCHAR(255),
   last_triggered      TIMESTAMP,
-  annotation_interval INT,
+  annotation_interval INT DEFAULT 15,
   last_annotation_id  INT,
 
   PRIMARY KEY (id)

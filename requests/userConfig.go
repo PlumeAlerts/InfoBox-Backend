@@ -49,18 +49,11 @@ func PutConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbUser := db.User{}
-	dbResponse := db.DB.Where(&db.User{Id: userId}).First(&dbUser)
-	if dbResponse.Error != nil {
-		resp.NewResponse(w).InternalServerError(utilities.Error{Message: "Database connection error"})
-		return
-	}
-
-	user := &db.User{
+	user := db.User{
 		Id:                 userId,
 		AnnotationInterval: data.AnnotationInterval,
 	}
-	dbResponse = db.DB.Update(user)
+	dbResponse := db.DB.Save(&user)
 
 	if dbResponse.Error != nil {
 		resp.NewResponse(w).InternalServerError(utilities.Error{Message: "Database connection error"})

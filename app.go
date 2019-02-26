@@ -31,13 +31,13 @@ func (a *App) Initialize(clientId string, clientSecret string, ownerId string, a
 	a.Router = mux.NewRouter()
 	a.Router.Use(client.VerifyJWT)
 
-	a.Router.Handle("/config", http.HandlerFunc(requests.GetConfig)).Methods("GET")
-	a.Router.Handle("/config", http.HandlerFunc(requests.PutConfig)).Methods("PUT")
+	a.Router.Handle("/v1/config", http.HandlerFunc(requests.GetConfig)).Methods("GET")
+	a.Router.Handle("/v1/config", http.HandlerFunc(requests.PutConfig)).Methods("PUT")
 
-	a.Router.Handle("/annotation/config", http.HandlerFunc(requests.GetAnnotationConfig)).Methods("GET")
-	a.Router.Handle("/annotation/config", http.HandlerFunc(requests.PutAnnotationConfig)).Methods("PUT")
-	a.Router.Handle("/annotation/config", http.HandlerFunc(requests.PostAnnotationConfig)).Methods("POST")
-	a.Router.Handle("/annotation/config", http.HandlerFunc(requests.DeleteAnnotationConfig)).Methods("DELETE")
+	a.Router.Handle("/v1/annotation/config", http.HandlerFunc(requests.GetAnnotationConfig)).Methods("GET")
+	a.Router.Handle("/v1/annotation/config", http.HandlerFunc(requests.PutAnnotationConfig)).Methods("PUT")
+	a.Router.Handle("/v1/annotation/config", http.HandlerFunc(requests.PostAnnotationConfig)).Methods("POST")
+	a.Router.Handle("/v1/annotation/config", http.HandlerFunc(requests.DeleteAnnotationConfig)).Methods("DELETE")
 }
 
 func (a *App) Run() {
@@ -56,7 +56,7 @@ func (a *App) Run() {
 }
 func InitializeSender(client extension.Client) {
 
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(30 * time.Second)
 	quit := make(chan struct{})
 	go func() {
 		for {
@@ -86,17 +86,15 @@ func triggerAnnotations(client extension.Client) {
 		}
 
 		var annotation db.Annotation
-		db.DB.Where("id = (select min(id) from annotation where user_id = ? and id > ?)", user.Id, user.LastAnnotationId).Find(&annotation)
+		db.DB.Where("id = (select min(id) from annotations where user_id = ? and id > ?)", user.Id, user.LastAnnotationId).Find(&annotation)
 		if annotation.Id == 0 {
-			db.DB.Where("id = (select min(id) from annotation where user_id = ? and id > ?)", user.Id, 0).Find(&annotation)
+			db.DB.Where("id = (select min(id) from annotations where user_id = ? and id > ?)", user.Id, 0).Find(&annotation)
 		}
 		b, _ := json.Marshal(annotation)
 
 		err := client.PostPubSubMessage(user.Id, string(b))
 		if err != nil {
 			fmt.Println(err)
-		} else {
-			fmt.Println(user.Id)
 		}
 		db.DB.Save(&db.User{Id: user.Id, LastTriggered: time.Now(), LastAnnotationId: annotation.Id})
 	}
