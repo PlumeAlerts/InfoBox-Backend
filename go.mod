@@ -5,7 +5,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-playground/locales v0.12.1 // indirect
 	github.com/go-playground/universal-translator v0.16.0 // indirect
-	github.com/golang-migrate/migrate/v4 v4.1.0
+	github.com/golang-migrate/migrate/v4 v4.6.2
 	github.com/gorilla/mux v1.7.3
 	github.com/jinzhu/gorm v1.9.2
 	github.com/jinzhu/inflection v0.0.0-20180308033659-04140366298a // indirect
