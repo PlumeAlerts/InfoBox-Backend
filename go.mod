@@ -7,7 +7,7 @@ require (
 	github.com/go-playground/universal-translator v0.16.0 // indirect
 	github.com/golang-migrate/migrate/v4 v4.7.1
 	github.com/gorilla/mux v1.7.3
-	github.com/jinzhu/gorm v1.9.11
+	github.com/jinzhu/gorm v1.9.12
 	github.com/jinzhu/inflection v0.0.0-20180308033659-04140366298a // indirect
 	github.com/leodido/go-urn v1.1.0 // indirect
 	github.com/nicklaw5/go-respond v0.0.0-20181019234323-81e2b0dd5bb6
